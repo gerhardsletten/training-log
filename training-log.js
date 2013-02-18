@@ -1,4 +1,5 @@
 (function( TrainingLog, $, undefined ) {
+
 	TrainingLog.addSession = function(obj, callback, error_callback) {
 		$.post(TrainingLog.ajaxurl, {
 			action : 'addSession',

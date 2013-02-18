@@ -1,0 +1,118 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-02-17 17:52+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: training-log.php:112
+msgid "KCAL"
+msgstr ""
+
+#: training-log.php:149 training-log.php:277
+msgid "Date"
+msgstr ""
+
+#: training-log.php:150 training-log.php:276
+msgid "Post"
+msgstr ""
+
+#: training-log.php:151 training-log.php:278
+msgid "Time"
+msgstr ""
+
+#: training-log.php:152 training-log.php:183 training-log.php:279
+msgid "Calories"
+msgstr ""
+
+#: training-log.php:153
+msgid "Actions"
+msgstr ""
+
+#: training-log.php:163
+msgid "Delete"
+msgstr ""
+
+#: training-log.php:168
+msgid "Previous month"
+msgstr ""
+
+#: training-log.php:169
+msgid "Next month"
+msgstr ""
+
+#: training-log.php:182
+msgid "Post ID"
+msgstr ""
+
+#: training-log.php:184
+msgid "Seconds"
+msgstr ""
+
+#: training-log.php:185
+msgid "Add"
+msgstr ""
+
+#: training-log.php:231
+msgid "Your session has been saved."
+msgstr ""
+
+#: training-log.php:234
+msgid "Unable to save the session"
+msgstr ""
+
+#: training-log.php:238
+msgid "Some fields are missing"
+msgstr ""
+
+#: training-log.php:246
+msgid "Training log"
+msgstr ""
+
+#: training-log.php:247
+msgid "Integration info"
+msgstr ""
+
+#: training-log.php:275
+msgid "User"
+msgstr ""
+
+#: training-log.php:306
+msgid "Previous page"
+msgstr ""
+
+#: training-log.php:310
+msgid "Next page"
+msgstr ""
+
+#: training-log.php:313
+msgid "Remove selected"
+msgstr ""
+
+#: training-log.php:316
+msgid "All training logs"
+msgstr ""
+
+#: training-log.php:321
+msgid "Training log shortcodes"
+msgstr ""
+
+#: training-log.php:323
+msgid "Displays a table with the users training logs."
+msgstr ""
+
+#: training-log.php:324
+msgid "Displays a form for users to add a new training log."
+msgstr ""
