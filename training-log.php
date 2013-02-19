@@ -216,7 +216,7 @@ if (!class_exists("TrainingLog")) {
 			return $out;
 		}
 		function training_log_add_direct() {
-			echo $this->training_log_add();
+			echo $this->training_log_add(array());
 		}
 
 		// Helper CRUD functions

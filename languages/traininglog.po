@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-02-17 17:52+0100\n"
+"POT-Creation-Date: 2013-02-18 20:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,39 +17,46 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: training-log.php:112
+#: training-log.php:112 training-log.php:114 training-log.php:208
+#: training-log.php:114 training-log.php:208
 msgid "KCAL"
 msgstr ""
 
-#: training-log.php:149 training-log.php:277
+#: training-log.php:149 training-log.php:277 training-log.php:168
+#: training-log.php:352 training-log.php:168 training-log.php:352
 msgid "Date"
 msgstr ""
 
-#: training-log.php:150 training-log.php:276
+#: training-log.php:150 training-log.php:276 training-log.php:169
+#: training-log.php:351 training-log.php:169 training-log.php:351
 msgid "Post"
 msgstr ""
 
-#: training-log.php:151 training-log.php:278
+#: training-log.php:151 training-log.php:278 training-log.php:170
+#: training-log.php:204 training-log.php:353 training-log.php:170
+#: training-log.php:204 training-log.php:353
 msgid "Time"
 msgstr ""
 
 #: training-log.php:152 training-log.php:183 training-log.php:279
+#: training-log.php:171 training-log.php:354 training-log.php:171
+#: training-log.php:354
 msgid "Calories"
 msgstr ""
 
-#: training-log.php:153
+#: training-log.php:153 training-log.php:172 training-log.php:172
 msgid "Actions"
 msgstr ""
 
-#: training-log.php:163
+#: training-log.php:163 training-log.php:182 training-log.php:182
 msgid "Delete"
 msgstr ""
 
-#: training-log.php:168
+#: training-log.php:168 training-log.php:187 training-log.php:187
 msgid "Previous month"
 msgstr ""
 
-#: training-log.php:169
+#: training-log.php:169 training-log.php:188 training-log.php:188
 msgid "Next month"
 msgstr ""
 
@@ -65,54 +72,93 @@ msgstr ""
 msgid "Add"
 msgstr ""
 
-#: training-log.php:231
+#: training-log.php:231 training-log.php:270 training-log.php:298
+#: training-log.php:270 training-log.php:298
 msgid "Your session has been saved."
 msgstr ""
 
-#: training-log.php:234
+#: training-log.php:234 training-log.php:273 training-log.php:301
+#: training-log.php:273 training-log.php:301
 msgid "Unable to save the session"
 msgstr ""
 
-#: training-log.php:238
+#: training-log.php:238 training-log.php:277 training-log.php:305
+#: training-log.php:277 training-log.php:305
 msgid "Some fields are missing"
 msgstr ""
 
-#: training-log.php:246
+#: training-log.php:246 training-log.php:321 training-log.php:321
 msgid "Training log"
 msgstr ""
 
-#: training-log.php:247
+#: training-log.php:247 training-log.php:322 training-log.php:322
 msgid "Integration info"
 msgstr ""
 
-#: training-log.php:275
+#: training-log.php:275 training-log.php:350 training-log.php:350
 msgid "User"
 msgstr ""
 
-#: training-log.php:306
+#: training-log.php:306 training-log.php:380 training-log.php:380
 msgid "Previous page"
 msgstr ""
 
-#: training-log.php:310
+#: training-log.php:310 training-log.php:384 training-log.php:384
 msgid "Next page"
 msgstr ""
 
-#: training-log.php:313
+#: training-log.php:313 training-log.php:387 training-log.php:387
 msgid "Remove selected"
 msgstr ""
 
-#: training-log.php:316
+#: training-log.php:316 training-log.php:390 training-log.php:390
 msgid "All training logs"
 msgstr ""
 
-#: training-log.php:321
+#: training-log.php:321 training-log.php:400 training-log.php:400
 msgid "Training log shortcodes"
 msgstr ""
 
-#: training-log.php:323
+#: training-log.php:323 training-log.php:402 training-log.php:402
 msgid "Displays a table with the users training logs."
 msgstr ""
 
-#: training-log.php:324
+#: training-log.php:324 training-log.php:403 training-log.php:403
 msgid "Displays a form for users to add a new training log."
+msgstr ""
+
+#: training-log.php:149 training-log.php:149
+msgid "The traning log was removed."
+msgstr ""
+
+#: training-log.php:151 training-log.php:151
+msgid "Error: Could not removed the traning log."
+msgstr ""
+
+#: training-log.php:212 training-log.php:212
+msgid "Start"
+msgstr ""
+
+#: training-log.php:213 training-log.php:213
+msgid "Stop"
+msgstr ""
+
+#: training-log.php:214 training-log.php:214
+msgid "Recording"
+msgstr ""
+
+#: training-log.php:308 training-log.php:308
+msgid "This session do not belong to you."
+msgstr ""
+
+#: training-log.php:311 training-log.php:311
+msgid "The id of session is missing."
+msgstr ""
+
+#: training-log.php:404 training-log.php:404
+msgid "Calories per seconds"
+msgstr ""
+
+#: training-log.php:406 training-log.php:406
+msgid "Save"
 msgstr ""
