@@ -7,23 +7,22 @@ Training log is a plugin for Wordpress that gives logged in users a personal tra
 
 With the shortcode-tags you can display a logger:
 
-[training_log_add]
+	[training_log_add]
 
 Or by adding this php to your single.php in your theme:
 
-<?php 
+	<?php 
 	if( class_exists("TrainingLog") ) {
 		$training_log = new TrainingLog();
 		$training_log->training_log_add_direct();
 	}
-
-?>
+	?>
 
 ## Training logs
 
 Add this shorttag to the page where you want to display the users personal training log:
 
-[training_log_table]
+	[training_log_table]
 
 ## Admin stuff
 
