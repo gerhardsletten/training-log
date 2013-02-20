@@ -13,6 +13,8 @@
 				cal_per_seconds = parseFloat( holder.find('[name="cal_per_seconds"]').val() ),
 				seconds = 0,
 				kcal = 0,
+				current_id = false,
+				is_saving = false,
 				counter = null,
 				status_field = holder.find('.training-log-status'),
 				playing_message = status_field.text();
@@ -53,21 +55,26 @@
 				kcal = parseInt(sec * cal_per_seconds);
 				seconds_field.val(sec);
 				kcal_field.val(kcal);
-
-				if(!id_field.val()) {
-					TrainingLog.addSession(holder.serialize(), function(data) {
-						displayMessage(data.message);
-						id_field.val(data.data.id);
-					}, function(data){
-						displayMessage(data.error, true);
-					});
-				} else {
-					TrainingLog.editSession(holder.serialize(), function(data) {
-						displayMessage(data.message);
-					}, function(data){
-						displayMessage(data.error, true);
-					});
+				if(!is_saving) {
+					is_saving = true;
+					if(!current_id) {
+						TrainingLog.addSession(holder.serialize(), function(data) {
+							displayMessage(data.message);
+							current_id = data.data.id;
+							is_saving = false;
+						}, function(data){
+							displayMessage(data.error, true);
+						});
+					} else {
+						TrainingLog.editSession(holder.serialize(), function(data) {
+							displayMessage(data.message);
+							is_saving = false;
+						}, function(data){
+							displayMessage(data.error, true);
+						});
+					}
 				}
+				
 				startButton.removeAttr("disabled");
 				stopButton.attr('disabled', 'disabled');
 			});

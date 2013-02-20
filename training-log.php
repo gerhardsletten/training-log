@@ -287,9 +287,8 @@ if (!class_exists("TrainingLog")) {
 			$this->_checkNonse();
 			$params = $safeparams = $return =  array();
 			parse_str($_POST['data'], $params);
-
-			if( isset($params['id']) ) {
-				$id = intval($params['id']);
+			$id = intval($_POST['id']);
+			if( $id && $id > 0 ) {
 				if( $this->_hasAccess($id) ) {
 					$safeparams = $this->_cleanParams($params);
 					if($safeparams['post_id'] > 0 && $safeparams['user_id'] > 0 && $safeparams['seconds'] > 0 && $safeparams['kcal'] > 0 && $safeparams['kcal'] > 0) {
