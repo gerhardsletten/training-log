@@ -51,9 +51,9 @@
 				displayMessage(playing_message);
 			});
 
-			holder.bind('TraningLog.Stop', function(e, sec){
-				kcal = parseInt(sec * cal_per_seconds);
-				seconds_field.val(sec);
+			holder.bind('TraningLog.Stop', function(e, obj){
+				kcal = parseInt(obj.seconds * cal_per_seconds);
+				seconds_field.val(obj.seconds);
 				kcal_field.val(kcal);
 				if(!is_saving) {
 					is_saving = true;
@@ -62,15 +62,29 @@
 							displayMessage(data.message);
 							current_id = data.data.id;
 							is_saving = false;
+							if(obj.callback) {
+								obj.callback(data);
+							}
 						}, function(data){
 							displayMessage(data.error, true);
+							if(obj.error_callback) {
+								obj.error_callback(data);
+							}
 						});
 					} else {
-						TrainingLog.editSession(holder.serialize(), function(data) {
-							displayMessage(data.message);
+						TrainingLog.editSession(current_id, holder.serialize(), function(data) {
+							if(data && data.message) {
+								displayMessage(data.message);
+							}
 							is_saving = false;
+							if(obj.callback) {
+								obj.callback(data);
+							}
 						}, function(data){
 							displayMessage(data.error, true);
+							if(obj.error_callback) {
+								obj.error_callback(data);
+							}
 						});
 					}
 				}

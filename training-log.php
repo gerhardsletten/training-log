@@ -264,7 +264,7 @@ if (!class_exists("TrainingLog")) {
 			$safeparams = $this->_cleanParams($params);
 			$safeparams['date'] = date($this->date_format, $now - $safeparams['seconds']);
 			
-			if($safeparams['post_id'] > 0 && $safeparams['user_id'] > 0 && $safeparams['seconds'] > 0 && $safeparams['kcal'] > 0 && $safeparams['kcal'] > 0) {
+			if($safeparams['post_id'] > 0 && $safeparams['user_id'] > 0 && $safeparams['seconds'] >= 0) {
 				if( $this->_wpdb->insert( $this->db_table_name , $safeparams ) ) {
 					$safeparams['id']  = $this->_wpdb->insert_id;
 					$return['message'] = __("Your session has been saved.", $this->name);
@@ -291,7 +291,7 @@ if (!class_exists("TrainingLog")) {
 			if( $id && $id > 0 ) {
 				if( $this->_hasAccess($id) ) {
 					$safeparams = $this->_cleanParams($params);
-					if($safeparams['post_id'] > 0 && $safeparams['user_id'] > 0 && $safeparams['seconds'] > 0 && $safeparams['kcal'] > 0 && $safeparams['kcal'] > 0) {
+					if($safeparams['post_id'] > 0 && $safeparams['user_id'] > 0 && $safeparams['seconds'] >= 0) {
 						if( $this->_wpdb->update( $this->db_table_name , $safeparams, array('id'=>$id) ) ) {
 							$safeparams['id']  = $id;
 							$return['message'] = __("Your session has been saved.", $this->name);
