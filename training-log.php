@@ -15,6 +15,8 @@ if (!class_exists("TrainingLog")) {
 		var $db_version_key = "training_log_db_version";
 		var $db_table_name = "training_log";
 		var $date_format = 'Y-m-d H:i:s';
+		var $date_format_js = 'c';
+		//"2012-09-01T01:00:00+01:00"
 		var $name;
 
 		function __construct() {
@@ -30,9 +32,7 @@ if (!class_exists("TrainingLog")) {
 			add_action( "admin_menu", array( &$this, "create_admin_menu" ) );
 			add_shortcode( 'training_log_table', array( &$this, "training_log_table" ) );
 			add_shortcode( 'training_log_add', array( &$this, "training_log_add" ) );
-			
-			//add_action('wp_enqueue_scripts', array( &$this, "enqueue_ressources" ));
-			
+						
 			// Add ajax functions
 			add_action( 'wp_ajax_addSession', array( &$this, "addSession" ) );
 			add_action( 'wp_ajax_nopriv_addSession', array( &$this, "addSession" ) );
@@ -71,9 +71,12 @@ if (!class_exists("TrainingLog")) {
 		}
 		
 		function enqueue_ressources($full = false) {
-			wp_enqueue_script( 'training-log-request', plugin_dir_url( __FILE__ ) . 'training-log.js', array( 'jquery' ) );
+			wp_enqueue_script( 'training-log-request', plugin_dir_url( __FILE__ ) . 'js/training-log.js', array( 'jquery' ) );
+			wp_enqueue_script( 'training-log-functions', plugin_dir_url( __FILE__ ) . 'js/training-log-functions.js', array( 'jquery' ) );
 			if($full) {
-				wp_enqueue_script( 'training-log-functions', plugin_dir_url( __FILE__ ) . 'training-log-functions.js', array( 'jquery' ) );
+				wp_enqueue_script( 'raphael', plugin_dir_url( __FILE__ ) . 'js/vendors/raphael-min.js', array( 'jquery' ) );
+				wp_enqueue_script( 'charts', plugin_dir_url( __FILE__ ) . 'js/vendors/charts.min.js', array( 'raphael' ) );
+				wp_enqueue_script( 'charts-setup', plugin_dir_url( __FILE__ ) . 'js/charts.js', array( 'raphael','charts', 'jquery' ) );
 			}
 			wp_localize_script( 'training-log-request', 'TrainingLog', array(
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
@@ -154,14 +157,106 @@ if (!class_exists("TrainingLog")) {
 			}
 
 			$date_range = $this->_dateRangeForMonth($year, $month);
+			$month_length = date("d", mktime(0, 0, 0, $month+1, 0, $year));
+			$dates = array();
 
 			$sqlSelect = "SELECT * FROM  $this->db_table_name  WHERE user_id =  " . $this->_currentUserId() . " AND date >= '$date_range[0]' AND date <= '$date_range[1]' ORDER BY id DESC";
 			
-			$rows =  $this->_wpdb->get_results( $sqlSelect );
+			$rows = $default = $this->_wpdb->get_results( $sqlSelect );
+
+			for($i = 1; $i <= $month_length; $i++) {
+				$start = mktime(0, 0, 0, $month, $i, $year);
+				$end = mktime(23, 59, 59, $month, $i, $year); 
+				$seconds = 0;
+				$kcal = 0;
+				$workouts = 0;
+				$display = "";
+				$time = 0;
+				foreach($default as $row) {
+					$ts = strtotime($row->date);
+					if($ts >= $start && $ts <= $end) {
+						$seconds += $row->seconds;
+						$kcal += $row->kcal;
+						$workouts++;
+					}
+				}
+				
+				
+				if($workouts > 0) {
+					switch ($workouts) {
+					    case 1:
+					        $display = "1 økt, ";
+					        break;
+					    default:
+					        $display = $workouts . " økter, ";
+					        break;
+					}
+					$raw = $this->sec_to_number($seconds);
+					if($raw[0] > 0) {
+						$display .= $raw[0] . "t og " . $raw[1] . "min trening";
+					} else {
+						$display .= $raw[1] . "min trening";
+					}
+					$display .= " (" . $kcal . "kcal)";
+					$time = $raw[2];
+				}
+
+				$dates[$i] = array(
+					'title' => date($this->date_format_js,mktime(0, 0, 0, $month, $i, $year)),
+					'time' => $time,
+					'display' => $display,
+					'kcal' => $kcal,
+					'seconds' => $seconds
+				);
+			}
+			$total = $day = array(
+				'seconds' => 0,
+				'kcal' => 0,
+				'hour' => 0,
+				'min' => 0
+			);
+			foreach($default as $row) {
+				$total['seconds'] += $row->seconds;
+				$total['kcal'] += $row->kcal;
+			}
+			$raw = $this->sec_to_number($total['seconds']);
+			$total['hour'] = $raw[0];
+			$total['min'] = $raw[1];
+
+			foreach($dates as $row) {
+				if($row->seconds > $day['seconds']) {
+					$day['seconds'] += $row->seconds;
+					$day['kcal'] += $row->kcal;
+				}
+				
+			}
+			$raw = $this->sec_to_number($total['seconds']);
+			$day['hour'] = $raw[0];
+			$day['min'] = $raw[1];
+
+			$buttons = '<a href="?year=' . $year . '&month=' . ($month - 1) . '" class="prev-button">' . __("Previous month", $this->name) . '</a>';
+			$buttons .= '<a href="?year=' . $year . '&month=' . ($month + 1) . '" class="next-button">' . __("Next month", $this->name) . '</a>';
+
 			$out = '<form method="post" id="traning-log-table">';
 			if($message) {
 				$out .= '<p class="message">' . $message . '</p>';
 			}
+			$out .= $buttons;
+			$out .= "<div class='training-log-container'>";
+			$out .= '<div class="tl-holder">
+						<div class="tl-box">
+							<strong>Beste dag</strong>
+							<span class="tl-time"><span>'.$day['hour'].'</span>timer <span>'.$day['min'].'</span>min</span>
+							<span class="tl-kcal"><span>'.$day['kcal'].'</span>kcal</span>
+						</div>
+						<div class="tl-box">
+							<strong>Denne måneden</strong>
+							<span class="tl-time"><span>'.$total['hour'].'</span>timer <span>'.$total['min'].'</span>min</span>
+							<span class="tl-kcal"><span>'.$total['kcal'].'</span>kcal</span>
+						</div>
+					</div>';
+			$out .= '<script> var training = ' . json_encode($dates) . ';</script>';
+			$out .= '<div id="training-chart" class="training-chart" style="width: 718px; height: 180px;"></div>';
 
 			$out .= '<table>
 					<tr>
@@ -183,16 +278,28 @@ if (!class_exists("TrainingLog")) {
 					</tr>";
 			}
 
-			$out .= '</table>';
-			$out .= '<a href="?year=' . $year . '&month=' . ($month - 1) . '" class="prev-button">' . __("Previous month", $this->name) . '</a>';
-			$out .= '<a href="?year=' . $year . '&month=' . ($month + 1) . '" class="next-button">' . __("Next month", $this->name) . '</a>';
+			$out .= '</table></div>';
+			$out .= $buttons;
 			$out .= "</form>";
 			
 			return $out;
 		}
 
+		function sec_to_number($sec) {
+			$h = $m = 0;
+			$min = $sec / 60;
+			if($min >= 60) {
+				$h = floor($min/60);
+			} else {
+				$h = 0;
+			}
+			$m = $min%60;
+			$m2 = $m/60;
+			return array($h,$m, $h+$m2);
+		}
+
 		function training_log_add($atts, $content = null ){
-			$this->enqueue_ressources(true);
+			$this->enqueue_ressources(false);
 			$post_id = get_the_ID();
 			$out = '<form class="training-log-add">
 						<input type="hidden" name="post_id" value="'.$post_id.'" />
