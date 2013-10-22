@@ -230,13 +230,14 @@ if (!class_exists("TrainingLog")) {
 			$total['min'] = $raw[1];
 
 			foreach($dates as $row) {
-				if($row->seconds > $day['seconds']) {
-					$day['seconds'] += $row->seconds;
-					$day['kcal'] += $row->kcal;
+				if($row['seconds'] > $day['seconds']) {
+					$day['seconds'] = $row['seconds'];
+					$day['kcal'] = $row['kcal'];
 				}
 				
 			}
-			$raw = $this->sec_to_number($total['seconds']);
+
+			$raw = $this->sec_to_number($day['seconds']);
 			$day['hour'] = $raw[0];
 			$day['min'] = $raw[1];
 
