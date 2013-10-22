@@ -16,7 +16,6 @@ if (!class_exists("TrainingLog")) {
 		var $db_table_name = "training_log";
 		var $date_format = 'Y-m-d H:i:s';
 		var $date_format_js = 'c';
-		//"2012-09-01T01:00:00+01:00"
 		var $name;
 
 		function __construct() {
@@ -44,6 +43,13 @@ if (!class_exists("TrainingLog")) {
 			if ( !get_option('calories_per_second') ) {
 			    update_option( 'calories_per_second', "0.5" );
 			}
+			include_once dirname(__FILE__)."/training-log-widget.php";
+			
+			add_action( 'widgets_init', array( &$this, "myplugin_register_widgets" ) );
+		}
+
+		function myplugin_register_widgets() {
+			register_widget( 'training_log_widget' );
 		}
 
 		/* Creating table */
