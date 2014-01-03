@@ -23,7 +23,7 @@ class training_log_widget extends WP_Widget {
 	    $this->WP_Widget('training_log_widget', 'Viser siste ukes trening', $widget_ops, $control_ops);
 
 	    include_once dirname(__FILE__)."/training-log.php";
-		$this->plugin = new TrainingLog();
+		$this->plugin = new TrainingLog(false);
 	}
 
 	function widget($args, $instance) {

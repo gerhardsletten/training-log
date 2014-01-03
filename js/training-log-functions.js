@@ -11,6 +11,8 @@
 				seconds_display = holder.find('.training-log-seconds dd'),
 				kcal_display = holder.find('.training-log-kcal dd'),
 				cal_per_seconds = parseFloat( holder.find('[name="cal_per_seconds"]').val() ),
+				cal_total_el = holder.find('[name="cal_total"]'),
+				cal_total = false,
 				seconds = 0,
 				kcal = 0,
 				current_id = false,
@@ -20,6 +22,10 @@
 				playing_message = status_field.text();
 			
 			stopButton.attr('disabled', 'disabled');
+
+			if(cal_total_el.length > 0) {
+				cal_total = parseFloat( cal_total_el.val() );
+			}
 
 			function format_seconds(seconds) {
 				minutes = Math.floor(seconds / 60);
@@ -45,7 +51,10 @@
 				
 			}
 
-			holder.bind('TraningLog.Start', function(e){
+			holder.bind('TraningLog.Start', function(e, obj){
+				if(cal_total && obj.duration) {
+					cal_per_seconds = cal_total / obj.duration;
+				}
 				startButton.attr('disabled', 'disabled');
 				stopButton.removeAttr("disabled");
 				displayMessage(playing_message);

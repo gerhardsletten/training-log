@@ -18,34 +18,89 @@ if (!class_exists("TrainingLog")) {
 		var $date_format_js = 'c';
 		var $name;
 
-		function __construct() {
+		function __construct($full = true) {
 			global $wpdb;
 			$this->_wpdb = $wpdb;
 			$this->db_table_name = $this->_wpdb->prefix . $this->db_table_name;
 			$this->name = strtolower(get_class());
-			load_plugin_textdomain($this->name, false, dirname( plugin_basename( __FILE__ ) ) . '/languages/');
+			if($full) {
+				load_plugin_textdomain($this->name, false, dirname( plugin_basename( __FILE__ ) ) . '/languages/');
 
-			//register_activation_hook(__FILE__, 'webtrening_create_table' );
+				//register_activation_hook(__FILE__, 'webtrening_create_table' );
+				
+				add_action('plugins_loaded', array( &$this, "update_table_check" ));
 
-			add_action('plugins_loaded', array( &$this, "update_table_check" ));
-			add_action( "admin_menu", array( &$this, "create_admin_menu" ) );
-			add_shortcode( 'training_log_table', array( &$this, "training_log_table" ) );
-			add_shortcode( 'training_log_add', array( &$this, "training_log_add" ) );
-						
-			// Add ajax functions
-			add_action( 'wp_ajax_addSession', array( &$this, "addSession" ) );
-			add_action( 'wp_ajax_nopriv_addSession', array( &$this, "addSession" ) );
-			add_action( 'wp_ajax_editSession', array( &$this, "editSession" ) );
-			add_action( 'wp_ajax_nopriv_editSession', array( &$this, "editSession" ) );
-			add_action( 'wp_ajax_deleteSession', array( &$this, "deleteSession" ) );
-			add_action( 'wp_ajax_nopriv_deleteSession', array( &$this, "deleteSession" ) );
+				add_action( "admin_menu", array( &$this, "create_admin_menu" ) );
+				add_shortcode( 'training_log_table', array( &$this, "training_log_table" ) );
+				add_shortcode( 'training_log_add', array( &$this, "training_log_add" ) );
+							
+				// Add ajax functions
+				add_action( 'wp_ajax_addSession', array( &$this, "addSession" ) );
+				add_action( 'wp_ajax_nopriv_addSession', array( &$this, "addSession" ) );
+				add_action( 'wp_ajax_editSession', array( &$this, "editSession" ) );
+				add_action( 'wp_ajax_nopriv_editSession', array( &$this, "editSession" ) );
+				add_action( 'wp_ajax_deleteSession', array( &$this, "deleteSession" ) );
+				add_action( 'wp_ajax_nopriv_deleteSession', array( &$this, "deleteSession" ) );
 
-			if ( !get_option('calories_per_second') ) {
-			    update_option( 'calories_per_second', "0.5" );
-			}
-			include_once dirname(__FILE__)."/training-log-widget.php";
+				if ( !get_option('calories_per_second') ) {
+				    update_option( 'calories_per_second', "0.5" );
+				}
 			
-			add_action( 'widgets_init', array( &$this, "myplugin_register_widgets" ) );
+			
+				include_once dirname(__FILE__)."/training-log-widget.php";
+				add_action( 'widgets_init', array( &$this, "myplugin_register_widgets" ) );
+
+				add_action( 'add_meta_boxes', array( &$this, "add_custom_box" ));
+				add_action( 'save_post', array( &$this, "save_postdata" ));
+
+				
+			}
+			
+		}
+
+		function add_custom_box() {
+			add_meta_box( 
+				'myplugin_sectionid',
+				'Treningsdagbok',
+				array( &$this, "custom_box" ),
+				'post' 
+			);
+		}
+
+		function custom_box() {
+			global $meta_box_video, $post;
+			// Use nonce for verification
+			wp_nonce_field( plugin_basename( __FILE__ ), 'training-log-save' );
+			$value = get_post_meta( $post->ID, 'kcal_post', false ); ?>
+		  	<label for="kcal_post">KCAL for økt</label>
+		  	<input type="text" value="<?php if($value[0] > 0) echo $value[0] ?>" placeholder="Skriv et nummer" id="kcal_post" name="kcal_post" />
+		  <?php
+		}
+
+		function save_postdata( $post_id ) {
+		  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) 
+		      return;
+
+		  if ( !wp_verify_nonce( $_POST['training-log-save'], plugin_basename( __FILE__ ) ) )
+		      return;
+
+		  // Check permissions
+		  if ( 'page' == $_POST['post_type'] ) {
+		    if ( !current_user_can( 'edit_page', $post_id ) )
+		        return;
+		  } else {
+		    	if ( !current_user_can( 'edit_post', $post_id ) )
+		        	return;
+		  }
+
+		  	$old = get_post_meta($post_id, 'kcal_post', true);
+			$new = intval($_POST['kcal_post']);
+
+			if ($new > 0 && $new != $old) {
+				update_post_meta($post_id, 'kcal_post', $new);
+			} elseif (0 == $new) {
+				delete_post_meta($post_id, 'kcal_post', $old);
+			}
 		}
 
 		function myplugin_register_widgets() {
@@ -311,8 +366,12 @@ if (!class_exists("TrainingLog")) {
 			$out = '<form class="training-log-add">
 						<input type="hidden" name="post_id" value="'.$post_id.'" />
 						<input type="hidden" name="id" value="" />
-						<input type="hidden" name="cal_per_seconds" value="'.get_option('calories_per_second') .'" />
-						<input type="hidden" name="seconds" value="" />
+						<input type="hidden" name="cal_per_seconds" value="'.get_option('calories_per_second') .'" />';
+			$kcal = get_post_meta($post_id, 'kcal_post', false);
+			if($kcal && $kcal[0] > 0) {
+				$out .= '<input type="hidden" name="cal_total" value="'. intval($kcal[0]) .'" />';
+			}
+			$out .= '<input type="hidden" name="seconds" value="" />
 						<input type="hidden" name="kcal" value="" />
 						<dl class="training-log-seconds">
 							<dt>' . __("Time", $this->name) . '</dt>
