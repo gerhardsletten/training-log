@@ -190,12 +190,12 @@ if (!class_exists("TrainingLog")) {
 			$this->enqueue_ressources(true);
 			$year = date('Y');
 			$message = false;
-			if( isset( $_GET['year'] ) ) {
-				$year = intval($_GET['year']);
+			if( isset( $_GET['ty'] ) ) {
+				$year = intval($_GET['ty']);
 			}
 			$month = date('m');
-			if( isset( $_GET['month'] ) ) {
-				$month = intval($_GET['month']);
+			if( isset( $_GET['tm'] ) ) {
+				$month = intval($_GET['tm']);
 			}
 			if($month < 1) {
 				$year--;
@@ -204,6 +204,16 @@ if (!class_exists("TrainingLog")) {
 			if($month > 12) {
 				$year++;
 				$month = 1;
+			}
+			$user_id = get_current_user_id();
+			if( isset( $_POST['tl_weight'] ) ) {
+				update_usermeta( $user_id, 'tl_weight', intval($_POST['tl_weight']) );
+			}
+			if( isset( $_POST['tl_height'] ) ) {
+				update_usermeta( $user_id, 'tl_height', intval($_POST['tl_height']) );
+			}
+			if( isset( $_POST['tl_sex'] ) ) {
+				update_usermeta( $user_id, 'tl_sex', sanitize_text_field($_POST['tl_sex']) );
 			}
 			if( isset( $_POST['delete'] ) ) {
 				$delete_id = intval($_POST['delete']);
@@ -296,8 +306,8 @@ if (!class_exists("TrainingLog")) {
 			$day['hour'] = $raw[0];
 			$day['min'] = $raw[1];
 
-			$buttons = '<a href="?year=' . $year . '&month=' . ($month - 1) . '" class="prev-button">' . __("Previous month", $this->name) . '</a>';
-			$buttons .= '<a href="?year=' . $year . '&month=' . ($month + 1) . '" class="next-button">' . __("Next month", $this->name) . '</a>';
+			$buttons = '<a href="?ty=' . $year . '&tm=' . ($month - 1) . '" class="prev-button">' . __("Previous month", $this->name) . '</a>';
+			$buttons .= '<a href="?ty=' . $year . '&tm=' . ($month + 1) . '" class="next-button">' . __("Next month", $this->name) . '</a>';
 
 			$out = '<form method="post" id="traning-log-table">';
 			if($message) {
@@ -343,7 +353,33 @@ if (!class_exists("TrainingLog")) {
 			$out .= '</table></div>';
 			$out .= $buttons;
 			$out .= "</form>";
+			$weight = get_user_meta($user_id, 'tl_weight', true);
+			$height = get_user_meta($user_id, 'tl_height', true);
+			$sex = get_user_meta($user_id, 'tl_sex', true);
 			
+			$out .= '<form method="post" id="traning-log-table-settings">';
+			if($weight && $height) {
+				$bmi = round($weight / (($height/100)^2),2);
+				$out .= "<p><label>BMI:</label><span>Din BMI er: " . $bmi . "</span></p>";
+			}
+			$out .= '<p><label>Vekt:</label> <input type="text" name="tl_weight" value="'.$weight.'" id="tl_weight" /></p>
+						<p><label>Høyde:</label> <input type="text" name="tl_height" value="'.$height.'" id="tl_height" /></p>
+						<p><label>Kjønn:</label> 
+						<select name="tl_sex" id="tl_sex">
+							<option>Ikke satt</option>
+							<option value="female"';
+			if($sex == 'female') {
+				$out .= " selected ";
+			}
+			$out .= '>Kvinne</option>
+							<option value="male"';
+			if($sex == 'male') {
+				$out .= " selected ";
+			}
+			$out .= '>Mann</option>
+						</select></p>
+						<input type="submit" value="Lagre" />
+						</form>';
 			return $out;
 		}
 
@@ -369,7 +405,26 @@ if (!class_exists("TrainingLog")) {
 						<input type="hidden" name="cal_per_seconds" value="'.get_option('calories_per_second') .'" />';
 			$kcal = get_post_meta($post_id, 'kcal_post', false);
 			if($kcal && $kcal[0] > 0) {
-				$out .= '<input type="hidden" name="cal_total" value="'. intval($kcal[0]) .'" />';
+				$kcal_tmp = intval($kcal[0]);
+				$adjust = 1;
+				$user_id = get_current_user_id();
+				$weight = get_user_meta($user_id, 'tl_weight', true);
+				$height = get_user_meta($user_id, 'tl_height', true);
+				$sex = get_user_meta($user_id, 'tl_sex', true);
+				if($weight) {
+					// Adjust +/- 8% for hver 10 kg differanse på 80kg
+					$adjust += ($weight - 80) * 0.008;
+				}
+				if($height) {
+					// Adjust +/- 3% for hver 10cm differasne på 180
+					$adjust += (($height - 180)/10) * 0.003;
+				}
+				if($sex && $sex == 'female') {
+					// Adjust - 10% hvis kvinne
+					$adjust += -0.01;
+				}
+				$kcal_tmp = $kcal_tmp * $adjust;
+				$out .= '<input type="hidden" name="cal_total" value="'. $kcal_tmp .'" />';
 			}
 			$out .= '<input type="hidden" name="seconds" value="" />
 						<input type="hidden" name="kcal" value="" />
