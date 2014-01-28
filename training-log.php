@@ -71,9 +71,17 @@ if (!class_exists("TrainingLog")) {
 			global $meta_box_video, $post;
 			// Use nonce for verification
 			wp_nonce_field( plugin_basename( __FILE__ ), 'training-log-save' );
-			$value = get_post_meta( $post->ID, 'kcal_post', false ); ?>
-		  	<label for="kcal_post">KCAL for økt</label>
-		  	<input type="text" value="<?php if($value[0] > 0) echo $value[0] ?>" placeholder="Skriv et nummer" id="kcal_post" name="kcal_post" />
+			$value = get_post_meta( $post->ID, 'kcal_post', false );
+			$hide = get_post_meta( $post->ID, 'hide_traininglog', false ); ?>
+			<p>
+			  	<label for="kcal_post">KCAL for økt</label>
+			  	<input type="text" value="<?php if($value[0] > 0) echo $value[0] ?>" placeholder="Skriv et nummer" id="kcal_post" name="kcal_post" />
+			</p>
+			<p>
+			  	<label for="hide_traininglog">Skjul treningslog</label>
+			  	<input type="hidden" value="0" name="hide_traininglog" />
+			  	<input type="checkbox" value="1" <?php if($hide[0] == 1) echo "checked" ?> id="hide_traininglog" name="hide_traininglog" />
+			</p>
 		  <?php
 		}
 
@@ -100,6 +108,15 @@ if (!class_exists("TrainingLog")) {
 				update_post_meta($post_id, 'kcal_post', $new);
 			} elseif (0 == $new) {
 				delete_post_meta($post_id, 'kcal_post', $old);
+			}
+
+			$old = get_post_meta($post_id, 'hide_traininglog', true);
+			$new = intval($_POST['hide_traininglog']);
+
+			if ($new > 0 && $new != $old) {
+				update_post_meta($post_id, 'hide_traininglog', $new);
+			} elseif (0 == $new) {
+				delete_post_meta($post_id, 'hide_traininglog', $old);
 			}
 		}
 
