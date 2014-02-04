@@ -168,7 +168,7 @@ if (!class_exists("TrainingLog")) {
 		function _dateRangeForMonth($year, $month) {
 			return array(
 				date($this->date_format, mktime(0, 0, 0, $month, 1, $year)),
-				date($this->date_format, mktime(0, 0, 0, $month+1, 0, $year))
+				date($this->date_format, mktime(23, 59, 59, $month+1, 0, $year))
 			);
 		}
 
@@ -207,6 +207,19 @@ if (!class_exists("TrainingLog")) {
 			$this->enqueue_ressources(true);
 			$year = date('Y');
 			$message = false;
+			$out = "";
+			$user_id = get_current_user_id();
+
+			if(current_user_can( 'manage_options' )) {
+				
+				if( isset( $_GET['tl_user'] ) ) {
+					
+					$user_id = intval($_GET['tl_user']);
+					$user_data = get_userdata( $user_id );; 
+					$out .= "<p>Treningsdata for " . $user_data->first_name . " " . $user_data->last_name . " (" . $user_data->user_login . ")</p>";
+				}
+			}
+
 			if( isset( $_GET['ty'] ) ) {
 				$year = intval($_GET['ty']);
 			}
@@ -222,7 +235,7 @@ if (!class_exists("TrainingLog")) {
 				$year++;
 				$month = 1;
 			}
-			$user_id = get_current_user_id();
+			
 			if( isset( $_POST['tl_weight'] ) ) {
 				update_usermeta( $user_id, 'tl_weight', intval($_POST['tl_weight']) );
 			}
@@ -248,7 +261,7 @@ if (!class_exists("TrainingLog")) {
 			$month_length = date("d", mktime(0, 0, 0, $month+1, 0, $year));
 			$dates = array();
 
-			$sqlSelect = "SELECT * FROM  $this->db_table_name  WHERE user_id =  " . $this->_currentUserId() . " AND date >= '$date_range[0]' AND date <= '$date_range[1]' ORDER BY id DESC";
+			$sqlSelect = "SELECT * FROM  $this->db_table_name  WHERE user_id =  " . $user_id . " AND date >= '$date_range[0]' AND date <= '$date_range[1]' ORDER BY id DESC";
 			
 			$rows = $default = $this->_wpdb->get_results( $sqlSelect );
 
@@ -326,7 +339,7 @@ if (!class_exists("TrainingLog")) {
 			$buttons = '<a href="?ty=' . $year . '&tm=' . ($month - 1) . '" class="prev-button">' . __("Previous month", $this->name) . '</a>';
 			$buttons .= '<a href="?ty=' . $year . '&tm=' . ($month + 1) . '" class="next-button">' . __("Next month", $this->name) . '</a>';
 
-			$out = '<form method="post" id="traning-log-table">';
+			$out .= '<form method="post" id="traning-log-table">';
 			if($message) {
 				$out .= '<p class="message">' . $message . '</p>';
 			}
