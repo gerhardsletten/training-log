@@ -587,7 +587,11 @@ if (!class_exists("TrainingLog")) {
 			if( isset( $_POST['prevpage'] ) ) {
 				$page = $_POST['page'] - 1;
 			}
-			
+			$filter = false;
+			if( isset( $_POST['filter'] ) ) {
+				$filter = $_POST['filter'];
+			}
+
 			$limit = 50;
 			$show_next = false;
 			if (isset($_POST['row']) && !empty($_POST['row'])) {
@@ -595,12 +599,18 @@ if (!class_exists("TrainingLog")) {
 				$sqlDelete = "DELETE FROM " . $this->db_table_name . " WHERE id in($str)";
 				$del = $this->_wpdb->query($sqlDelete);
 			}
-
-			$sqlSelect = "SELECT * FROM " . $this->db_table_name . " ORDER BY id DESC LIMIT " . $page * $limit . "," . (1+$limit);
+			if($filter) {
+				$sqlSelect = "SELECT * FROM " . $this->db_table_name . " WHERE user_id = ".$filter." ORDER BY id DESC LIMIT " . $page * $limit . "," . (1+$limit);
+			} else {
+				$sqlSelect = "SELECT * FROM " . $this->db_table_name . " ORDER BY id DESC LIMIT " . $page * $limit . "," . (1+$limit);
+				$filter = "";
+			}
+			
 			$rows =  $this->_wpdb->get_results( $sqlSelect );
 			
 			$out .= "<div class='wrap'><form method=\"post\">";
 			$out .= '<input type="hidden" name="page" value="'.$page.'" />';
+			$out .= '<div style="float:right"><input type="text" placeholder="Filtrer på bruker id" name="filter" value="' . $filter . '"/><input type="submit" class="button-secondary action" value="Filtrer" /></div>';
 			$out .= "<table class='widefat'><thead><tr>
 				<th style='width:25px;'></th>
 				<th style='width:25px;'>ID</th>
@@ -623,7 +633,7 @@ if (!class_exists("TrainingLog")) {
 					<tr>
 						<td><input type='checkbox' name='row[]' value=" .$row->id ." /></td>
 						<td>$row->id</td>
-						<td>". $this->_formatUser($row->user_id) . "</td>
+						<td>". $this->_formatUser($row->user_id) . " (".$row->user_id.")</td>
 						<td>". $this->_formatPost($row->post_id) . "</td>
 						<td>". $this->_formatDate($row->date) . "</td>
 						<td>". $this->_formatTime($row->seconds) . "</td>
