@@ -30,5 +30,9 @@
 		});
 
 		chart.draw();
+
+		$( "#tl_own_date" ).datepicker({
+			dateFormat:"yy-mm-dd"
+		});
 	});
 })(jQuery);

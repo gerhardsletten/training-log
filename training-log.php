@@ -11,7 +11,7 @@ Author URI: http://www.metabits.no
 if (!class_exists("TrainingLog")) {
 	class TrainingLog {
 		var $_wpdb;
-		var $db_version = "1.1";
+		var $db_version = "1.3";
 		var $db_version_key = "training_log_db_version";
 		var $db_table_name = "training_log";
 		var $date_format = 'Y-m-d H:i:s';
@@ -134,14 +134,15 @@ if (!class_exists("TrainingLog")) {
 		}
 
 		function create_table() {
-			$sql = "CREATE TABLE IF NOT EXISTS `".$this->db_table_name."` (
-				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-				`post_id` bigint(20) unsigned NOT NULL DEFAULT '0',
-				`user_id` bigint(20) unsigned NOT NULL DEFAULT '0',
-				`date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-				`kcal` int(11) NOT NULL DEFAULT '0',
-				`seconds` bigint(20) NOT NULL DEFAULT '0',
-				PRIMARY KEY (`id`))";
+			$sql = "CREATE TABLE `".$this->db_table_name."` (
+				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				title varchar(150) DEFAULT '',
+				post_id bigint(20) unsigned NOT NULL DEFAULT '0',
+				user_id bigint(20) unsigned NOT NULL DEFAULT '0',
+				date datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+				kcal int(11) NOT NULL DEFAULT '0',
+				seconds bigint(20) NOT NULL DEFAULT '0',
+				PRIMARY KEY  (id))";
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 			if(dbDelta($sql)) {
 				add_option($this->db_version_key, $this->db_version );
@@ -154,7 +155,10 @@ if (!class_exists("TrainingLog")) {
 			if($full) {
 				wp_enqueue_script( 'raphael', plugin_dir_url( __FILE__ ) . 'js/vendors/raphael-min.js', array( 'jquery' ) );
 				wp_enqueue_script( 'charts', plugin_dir_url( __FILE__ ) . 'js/vendors/charts.min.js', array( 'raphael' ) );
-				wp_enqueue_script( 'charts-setup', plugin_dir_url( __FILE__ ) . 'js/charts.js', array( 'raphael','charts', 'jquery' ) );
+				wp_enqueue_script( 'magnific-popup', plugin_dir_url( __FILE__ ) . 'js/vendors/magnific-popup/jquery.magnific-popup.min.js', array( 'jquery' ) );
+				wp_enqueue_script( 'charts-setup', plugin_dir_url( __FILE__ ) . 'js/charts.js', array( 'raphael','charts', 'jquery','magnific-popup','jquery-ui-datepicker' ) );
+
+				wp_enqueue_style( 'magnific-popup', plugin_dir_url( __FILE__ ) . 'js/vendors/magnific-popup/magnific-popup.css' );
 			}
 			wp_localize_script( 'training-log-request', 'TrainingLog', array(
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
@@ -235,6 +239,56 @@ if (!class_exists("TrainingLog")) {
 				$year++;
 				$month = 1;
 			}
+
+			$tl_own_title = "";
+			$tl_own_seconds = "";
+			$tl_own_kcal = "";
+			$tl_own_date = "";
+
+			if( isset( $_POST['tl_own_seconds'] ) ) {
+				$tl_own_seconds = intval($_POST['tl_own_seconds']);
+			}
+
+			if( isset( $_POST['tl_own_kcal'] ) ) {
+				$tl_own_kcal = intval($_POST['tl_own_kcal']);
+			}
+
+			if( isset( $_POST['tl_own_date'] ) ) {
+				$tl_own_date = sanitize_text_field($_POST['tl_own_date']);
+			}
+			
+			if( isset( $_POST['tl_own_title'] )  ) {
+				$tl_own_title = sanitize_text_field($_POST['tl_own_title']);
+			}
+
+			if( isset( $_POST['tl_own_title'] ) || isset( $_POST['tl_own_seconds'] ) || isset( $_POST['tl_own_date'] ) ) {
+				// User try to save a session
+				$date = split('-', $tl_own_date);
+				if( $tl_own_seconds > 0 && strlen($_POST['tl_own_title'])>1 && count($date) == 3) {
+					$params = array(
+						//Y-m-d
+						'date' => date($this->date_format, mktime(12,0,0,$date[1],$date[2],$date[0])),
+						'title' => $tl_own_title,
+						'post_id' => 0,
+						'user_id' => $this->_currentUserId(),
+						'seconds' => $tl_own_seconds,
+						'kcal' => $tl_own_kcal
+					);
+					if( $this->_wpdb->insert( $this->db_table_name , $params ) ) {
+						$message = "Treningsøkten ble lagret!";
+						$tl_own_title = "";
+						$tl_own_seconds = "";
+						$tl_own_kcal = "";
+						$tl_own_date = "";
+					} else {
+						$message = "Feil: Treningsøkten ble ikke lagret!";
+					}
+				} else {
+					$message = "Feil: Du må både fylle ut tittel, dato og antall minutter";
+				}
+
+			}
+
 			
 			if( isset( $_POST['tl_weight'] ) ) {
 				update_usermeta( $user_id, 'tl_weight', intval($_POST['tl_weight']) );
@@ -245,6 +299,7 @@ if (!class_exists("TrainingLog")) {
 			if( isset( $_POST['tl_sex'] ) ) {
 				update_usermeta( $user_id, 'tl_sex', sanitize_text_field($_POST['tl_sex']) );
 			}
+
 			if( isset( $_POST['delete'] ) ) {
 				$delete_id = intval($_POST['delete']);
 				if( $this->_hasAccess($delete_id) ) {
@@ -372,9 +427,14 @@ if (!class_exists("TrainingLog")) {
 				
 				$out .= "
 					<tr>
-						<td>". $this->_formatDate($row->date) . "</td>
-						<td>". $this->_formatPost($row->post_id) . "</td>
-						<td>". $this->_formatTime($row->seconds) . "</td>
+						<td>". $this->_formatDate($row->date) . "</td>";
+				if($row->post_id > 0) {
+					$out .= "<td>". $this->_formatPost($row->post_id) . "</td>";
+				} else {
+					$out .= "<td>". $row->title . "</td>";
+				}
+						
+				$out .= "<td>". $this->_formatTime($row->seconds) . "</td>
 						<td>". $this->_formatKcal($row->kcal) . "</td>
 						<td><button type='submit' name='delete' value='$row->id' class='button-delete'>".__("Delete", $this->name)."</button></td>
 					</tr>";
@@ -387,13 +447,13 @@ if (!class_exists("TrainingLog")) {
 			$height = get_user_meta($user_id, 'tl_height', true);
 			$sex = get_user_meta($user_id, 'tl_sex', true);
 			
-			$out .= '<form method="post" id="traning-log-table-settings">';
+			$out .= '<div class="tl_holder"><div class="tl_column"><div class="widget widget-traninglog"><h3 class="widget-title">BMI Måler</h3><form method="post" id="traning-log-table-settings">';
 			if($weight && $height) {
 				$bmi = round($weight / (($height/100)^2),2);
 				$out .= "<p><label>BMI:</label><span>Din BMI er: " . $bmi . "</span></p>";
 			}
-			$out .= '<p><label>Vekt:</label> <input type="text" name="tl_weight" value="'.$weight.'" id="tl_weight" /></p>
-						<p><label>Høyde:</label> <input type="text" name="tl_height" value="'.$height.'" id="tl_height" /></p>
+			$out .= '<p><label>Vekt:</label> <input type="text" name="tl_weight" value="'.$weight.'" id="tl_weight" class="short" /></p>
+						<p><label>Høyde:</label> <input type="text" name="tl_height" value="'.$height.'" id="tl_height" class="short" /></p>
 						<p><label>Kjønn:</label> 
 						<select name="tl_sex" id="tl_sex">
 							<option>Ikke satt</option>
@@ -409,7 +469,43 @@ if (!class_exists("TrainingLog")) {
 			$out .= '>Mann</option>
 						</select></p>
 						<input type="submit" value="Lagre" />
-						</form>';
+						</form></div></div>';
+			$out .= '<div class="tl_column">
+				<div class="widget widget-traninglog">
+					<h3 class="widget-title">Nyhet: Legg inn annen økt</h3>
+					<form method="post">
+						<p>
+							<label>Navn på økt</label>
+							<input type="text" name="tl_own_title" placeholder="Løping" value="'.$tl_own_title.'" />
+						</p>
+						<p>
+							<label>Dato</label>
+							<input type="text" name="tl_own_date" placeholder="" value="'.$tl_own_date.'" id="tl_own_date" />
+						</p>
+						<p>
+							<label>Antall minutter</label>
+							<select name="tl_own_seconds" class="short">';
+			$steps = (60*60) / 12;
+			$max = 60*60*3; // 3 hours
+			for($j = $steps; $j <= $max; $j += $steps) {
+				$label = $this->_formatTime($j);
+				if($j == $tl_own_seconds) {
+					$out .= '<option value="'.$j.'" selected>'.$label.'</option>';
+				} else {
+					$out .= '<option value="'.$j.'">'.$label.'</option>';
+				}
+				
+			}
+								
+			$out .= '</select></p>
+					<p>
+						<label>Antall kcal</label>
+						<input type="text" name="tl_own_kcal" placeholder="355" class="short" value="'.$tl_own_kcal.'" />
+					</p>
+						<input type="submit" value="Lagre" />
+					</form>
+				</div>
+			</div>';
 			return $out;
 		}
 
