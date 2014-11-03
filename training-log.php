@@ -603,7 +603,13 @@ if (!class_exists("TrainingLog")) {
 			$return['user_id'] = $this->_currentUserId();
 			$return['post_id'] = intval($params['post_id']);
 			$return['seconds'] = intval($params['seconds']);
-			$return['kcal'] = intval($params['kcal']);
+			$return['kcal'] = round($return['seconds'] * get_option('calories_per_second'));
+			if(isset($params['seconds_total']) && intval($params['seconds_total']) > 1) {
+				$kcal = get_post_meta($return['post_id'], 'kcal_post', true);
+				if( $kcal && $kcal > 0 ) {
+					$return['kcal'] = round(($kcal / intval($params['seconds_total'])) * $return['seconds']);
+				}
+			}
 			return $return;
 		}
 
