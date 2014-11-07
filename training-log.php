@@ -86,10 +86,10 @@ if (!class_exists("TrainingLog")) {
 		}
 
 		function save_postdata( $post_id ) {
-		  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) 
+		  if (!$_POST || !isset($_POST['training-log-save']) ) 
 		      return;
 
-		  if ( !wp_verify_nonce( $_POST['training-log-save'], plugin_basename( __FILE__ ) ) )
+		  if (isset($_POST['training-log-save']) && !wp_verify_nonce( $_POST['training-log-save'], plugin_basename( __FILE__ ) ) )
 		      return;
 
 		  // Check permissions
@@ -618,7 +618,7 @@ if (!class_exists("TrainingLog")) {
 		function addSession() {
 			$this->_checkNonse();
 			$params = $safeparams = $return =  array();
-			$now = mktime();
+			$now = time();
 			parse_str($_POST['data'], $params);
 
 			$safeparams = $this->_cleanParams($params);

@@ -58,7 +58,10 @@ class training_log_widget extends WP_Widget {
 		global $wpdb;
 		$rows = $wpdb->get_results( $sqlSelect );
 		$max = 0;
-		$total = array();
+		$total = array(
+			'seconds'=>0,
+			'kcal' =>0
+		);
 		for($i = 0; $i < count($date_range); $i++ ) {
 			$start = mktime(0, 0, 0, $month, $date_range[$i]['day'], $year);
 			$end = mktime(23, 59, 59, $month, $date_range[$i]['day'], $year); 
